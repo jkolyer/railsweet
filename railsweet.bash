@@ -18,11 +18,11 @@ export DEVMODE=0
 
 function _init_railsapps {
     echo "*** creating rails plugin"
-    rails plugin new $APP --mountable --database=$SWEET_DB
-    sed -i -e "s/TODO: Your name/$USER/g" $APP_DIR/$APP/$APP.gemspec
-    sed -i -e "s/TODO: Your email/$USER@example.com/g" $APP_DIR/$APP/$APP.gemspec
-    sed -i -e "s/TODO: //g" $APP_DIR/$APP/$APP.gemspec
-    sed -i -e "s/TODO/http:\/\/example.com/g" $APP_DIR/$APP/$APP.gemspec
+    rails plugin new $ENGINE --mountable --database=$SWEET_DB
+    sed -i -e "s/TODO: Your name/$USER/g" $APP_DIR/$ENGINE/$APP.gemspec
+    sed -i -e "s/TODO: Your email/$USER@example.com/g" $APP_DIR/$ENGINE/$APP.gemspec
+    sed -i -e "s/TODO: //g" $APP_DIR/$ENGINE/$APP.gemspec
+    sed -i -e "s/TODO/http:\/\/example.com/g" $APP_DIR/$ENGINE/$ENGINE.gemspec
     # FIXME:  ensure this function is defined, warned if not
     eval $APP'_init_default_gems'
 
@@ -41,25 +41,25 @@ function _init_railsapps {
 
 function _init_databaseyml {
     pushd $APP_API/config
-    mv database.yml ../../$APP/config
-    ln -s ../../$APP/config/database.yml .
+    mv database.yml ../../$ENGINE/config
+    ln -s ../../$ENGINE/config/database.yml .
     if [[ "x$DEVMODE" != "x1" ]]; then
 	cd ../../$APP_WEB/config
 	rm database.yml
-	ln -s ../../$APP/config/database.yml .
+	ln -s ../../$ENGINE/config/database.yml .
 	cd ../../$APP_SRV/config
 	rm database.yml
-	ln -s ../../$APP/config/database.yml .
+	ln -s ../../$ENGINE/config/database.yml .
 	cd ../../$APP_ADM/config
 	rm database.yml
-	ln -s ../../$APP/config/database.yml .
+	ln -s ../../$ENGINE/config/database.yml .
      fi
      popd
 }
 
 function _init_bundle_install {
-    echo "** $APP_DIR/$APP; bundle install"
-    cd  $APP_DIR/$APP; bundle install
+    echo "** $APP_DIR/$ENGINE; bundle install"
+    cd  $APP_DIR/$ENGINE; bundle install
 
     echo "** $APP_DIR/$APP_API; bundle install"
     cd  $APP_DIR/$APP_API; bundle install
@@ -74,15 +74,15 @@ function _init_bundle_install {
     fi
     
     # echo "$APP_DIR; rails generate devise:install"
-    # cd $APP_DIR/$APP; rails generate devise:install
+    # cd $APP_DIR/$ENGINE; rails generate devise:install
 }
 
 function _init_gemfiles {
-    echo "gem '$APP', path: '../$APP'" >> $APP_DIR/$APP_API/Gemfile
+    echo "gem '$ENGINE', path: '../$ENGINE'" >> $APP_DIR/$APP_API/Gemfile
     if [[ "x$DEVMODE" != "x1" ]]; then
-	echo "gem '$APP', path: '../$APP'" >> $APP_DIR/$APP_WEB/Gemfile
-	echo "gem '$APP', path: '../$APP'" >> $APP_DIR/$APP_SRV/Gemfile
-	echo "gem '$APP', path: '../$APP'" >> $APP_DIR/$APP_ADM/Gemfile
+	echo "gem '$ENGINE', path: '../$ENGINE'" >> $APP_DIR/$APP_WEB/Gemfile
+	echo "gem '$ENGINE', path: '../$ENGINE'" >> $APP_DIR/$APP_SRV/Gemfile
+	echo "gem '$ENGINE', path: '../$ENGINE'" >> $APP_DIR/$APP_ADM/Gemfile
 
 	echo "gem 'activeadmin', github: 'gregbell/active_admin', branch: 'rails4'" >> $APP_DIR/$APP_ADM/Gemfile
 	
@@ -92,7 +92,7 @@ function _init_gemfiles {
 }
 
 function _init_routes {
-    export NG_NAME=`echo "$(echo "$APP" | sed 's/.*/\u&/')"`
+    export NG_NAME=`echo "$(echo "$ENGINE" | sed 's/.*/\u&/')"`
     sed -i -e "2 i mount "$NG_NAME"::Engine, at: '/'" $APP_DIR/$APP_API/config/routes.rb
 
     if [[ "x$DEVMODE" != "x1" ]]; then
@@ -111,6 +111,7 @@ function app_sweet_setup {
     # FIXME:  reimplement with thor
 
     export APP=$1
+    export ENGINE=$APP
     export APP_DIR=`pwd`/$APP
     source `pwd`/bin/$APP.bash  # default value, check for function arg
 
