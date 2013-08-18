@@ -19,10 +19,10 @@ export DEVMODE=0
 function _init_railsapps {
     echo "*** creating rails plugin"
     rails plugin new $ENGINE --mountable --database=$SWEET_DB
-    sed -i -e "s/TODO: Your name/$USER/g" $APP_DIR/$ENGINE/$APP.gemspec
-    sed -i -e "s/TODO: Your email/$USER@example.com/g" $APP_DIR/$ENGINE/$APP.gemspec
-    sed -i -e "s/TODO: //g" $APP_DIR/$ENGINE/$APP.gemspec
-    sed -i -e "s/TODO/http:\/\/example.com/g" $APP_DIR/$ENGINE/$ENGINE.gemspec
+    sed -i -e "s/TODO: Your name/$USER/g" $ENG_DIR/$APP.gemspec
+    sed -i -e "s/TODO: Your email/$USER@example.com/g" $ENG_DIR/$APP.gemspec
+    sed -i -e "s/TODO: //g" $ENG_DIR/$APP.gemspec
+    sed -i -e "s/TODO/http:\/\/example.com/g" $ENG_DIR/$ENGINE.gemspec
     # FIXME:  ensure this function is defined, warned if not
     eval $APP'_init_default_gems'
 
@@ -58,8 +58,8 @@ function _init_databaseyml {
 }
 
 function _init_bundle_install {
-    echo "** $APP_DIR/$ENGINE; bundle install"
-    cd  $APP_DIR/$ENGINE; bundle install
+    echo "** $ENG_DIR; bundle install"
+    cd  $ENG_DIR; bundle install
 
     echo "** $APP_DIR/$APP_API; bundle install"
     cd  $APP_DIR/$APP_API; bundle install
@@ -74,7 +74,7 @@ function _init_bundle_install {
     fi
     
     # echo "$APP_DIR; rails generate devise:install"
-    # cd $APP_DIR/$ENGINE; rails generate devise:install
+    # cd $ENG_DIR; rails generate devise:install
 }
 
 function _init_gemfiles {
@@ -105,6 +105,24 @@ function _init_routes {
     fi
 }
 
+function _post_install {
+    pushd $APP_API
+    rm .gitignore
+    ln -s ../../$ENGINE/.gitignore .
+    if [[ "x$DEVMODE" != "x1" ]]; then
+	cd $APP_DIR/$APP_WEB
+	rm .gitignore
+	ln -s ../../$ENGINE/.gitignore .
+	cd $APP_DIR/$APP_SRV
+	rm .gitignore
+	ln -s ../../$ENGINE/.gitignore .
+	cd $APP_DIR/$APP_ADM
+	rm .gitignore
+	ln -s ../../$ENGINE/.gitignore .
+     fi
+     popd
+}
+
 function app_sweet_setup {
     # FIXME:  check for APP argument, check for definition of $APP_init_default_gems
     # FIXME:  add dry-run option
@@ -113,6 +131,7 @@ function app_sweet_setup {
     export APP=$1
     export ENGINE=$APP
     export APP_DIR=`pwd`/$APP
+    export ENG_DIR=$APP_DIR/$ENGINE
     source `pwd`/bin/$APP.bash  # default value, check for function arg
 
     mkdir $APP_DIR
@@ -132,6 +151,10 @@ function app_sweet_setup {
 
     echo "*** init bundle install"
     _init_bundle_install
+
+    echo "*** post install"
+    _post_install
+    eval $APP'_post_install'
 
     popd
 }
